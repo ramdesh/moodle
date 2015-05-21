@@ -263,6 +263,18 @@ class behat_course extends behat_base {
             $this->i_wait_until_section_is_available($sectionnumber);
         }
     }
+    /**
+     * Deletes the specified section. You need to be in the course page and on editing mode.
+     *
+     * @Given /^I delete section "(?P<section_number>\d+)"$/
+     * @param int $sectionnumber
+     */
+    public function i_delete_section($sectionnumber) {
+        $deletelink = $this->delete_section_icon_exists($sectionnumber);
+        $deletelink->click();
+        $buttonnode = $this->find_button(get_string('continue'));
+        $buttonnode->press();
+    }
 
     /**
      * Go to editing section page for specified section number. You need to be in the course page and on editing mode.
@@ -909,6 +921,32 @@ class behat_course extends behat_base {
         $imgxpath = $linkxpath . "/descendant::img[@alt=$hidetext][contains(@src, 'hide')]";
 
         $exception = new ElementNotFoundException($this->getSession(), 'Hide section icon ');
+        $this->find('xpath', $imgxpath, $exception);
+
+        // Returing the link so both Non-JS and JS browsers can interact with it.
+        return $this->find('xpath', $linkxpath, $exception);
+    }
+
+    /**
+     * Returns the delete section icon link if it exists or throws exception.
+     *
+     * @throws ElementNotFoundException Thrown by behat_base::find
+     * @param int $sectionnumber
+     * @return NodeElement
+     */
+    protected function delete_section_icon_exists($sectionnumber) {
+        // Gets the section xpath and ensure it exists.
+        $xpath = $this->section_exists($sectionnumber);
+
+        // We need to know the course format as the text strings depends on them.
+        $courseformat = $this->get_course_format();
+
+        // Checking the hide button alt text and hide icon.
+        $deletetext = $this->getSession()->getSelectorsHandler()->xpathLiteral(get_string('deletesection', $courseformat));
+        $linkxpath = $xpath . "/descendant::a[@title=$deletetext]";
+        $imgxpath = $linkxpath . "/descendant::img[@alt=$deletetext][contains(@src, 'delete')]";
+
+        $exception = new ElementNotFoundException($this->getSession(), 'Delete section icon ');
         $this->find('xpath', $imgxpath, $exception);
 
         // Returing the link so both Non-JS and JS browsers can interact with it.
